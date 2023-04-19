@@ -1,0 +1,52 @@
+---
+title: "hypo_atac_preprocessing"
+output: html_document
+date: "2023-03-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(usethis)
+usethis::edit_r_environ()
+```
+
+```{r cars}
+whole_atac <- readRDS('atac_webb.RDS.R')
+```
+
+```{r}
+nrow(whole_atac)
+last_row <- tail(whole_atac, n=1)
+last_row
+```
+
+
+```{r}
+library(Seurat)
+Idents(object = whole_atac)
+
+```
+
+```{r}
+
+#getting just the neurons
+
+hypo_neurons <- subset(x = whole_atac, idents = "Neurons")
+hypo_neurons_female <- subset(x= hypo_neurons, subset = sex == 'F')
+
+```
+
+
+```{r}
+library(Signac)
+
+hypo_neurons_F_X <- subset(hypo_neurons_female, subset = hypo_neurons_female$seqnames == 'chr1')
+```
+
+```{r}
+saveRDS(hypo_neurons_female, "atac_female_neurons.RDS")
+
+```{r}
