@@ -1,0 +1,107 @@
+---
+title: "RNA_seq_james"
+output: html_document
+date: "2022-12-02"
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(SeuratDisk)
+library(Signac)
+
+atac <- readRDS('/Users/tpham43/Desktop/spring2023/csci1470/final_project/atac_female_neurons.RDS')
+
+chrX<-rownames(atac)[grep("chrX-",rownames(atac))]
+subset_X<-DietSeurat(
+    atac,
+    counts = TRUE,
+    data = TRUE,
+    scale.data = FALSE,
+    features = chrX,
+    assays = NULL,
+    dimreducs = NULL,
+    graphs = NULL,
+    misc = TRUE
+)
+counts <- GetAssayData(atac, slot="counts", assay="ATAC")   
+
+time<-subset(atac,subset = atac$NNv1_age>=14 & atac$NNv1_age<=15 & (exp =="exp2"|exp=="exp1") & (time=="12-16" | time =="14-18"))
+time$time<-gsub( "-", "_", time$time) 
+
+time$refined_annotation<-gsub( " ", "", time$refined_annotation) 
+
+
+write.table(time, file = "/Users/tpham43/OneDrive_Brown/fall2022/JEK/data/14_15_all.tsv", row.names=TRUE,col.names = TRUE, sep="\t",quote = FALSE)
+
+
+```
+
+```{r}
+RNA_exp1_14_16_lite<-a
+RNA_exp1_14_16_lite$refined_annotation <- as.character(RNA_exp1_14_16_lite$refined_annotation)
+
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="epidermis"]<-"Epidermis"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="ventral nerve cord"]<-"Ventral nerve cord"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="plasmatocytes"]<-"Plasmatocytes"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="somatic muscle"]<-"Somatic muscle"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="brain"]<-"Brain"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="midgut"]<-"Midgut"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="yolk nuclei"]<-"yolk"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="yolk"]<-"Yolk"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="fat body"]<-"Fat body"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="tracheal system"]<-"Tracheal system"
+  RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="foregut / hindgut / anal pad"]<-"Hindgut"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="sensory nervous system"]<-"PNS & sense"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="salivary gland"]<-"Salivary gland"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="amnioserosa"]<-"Amnioserosa"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="spiracle (tracheal system)"]<-"Tracheal system"
+RNA_exp1_14_16_lite$refined_annotation[RNA_exp1_14_16_lite$refined_annotation=="muscle"]<-"Visceral muscle"
+RNA_exp1_14_16_lite$refined_annotation <- as.factor(RNA_exp1_14_16_lite$refined_annotation)
+
+```
+```{r}
+new <- AddMetaData(seurat_obj, RNA_exp1_14_16_lite)
+i <- sapply(new@meta.data, is.factor)
+new@meta.data[i] <- lapply(new@meta.data[i], as.character)
+# set default assay
+DefaultAssay(new) <- "RNA"
+new<-DietSeurat(
+  new,
+  counts = TRUE,
+  data = TRUE,
+  scale.data = FALSE,
+  misc = FALSE
+)
+
+new<-DietSeurat(
+  new,
+  counts = TRUE,
+  data = TRUE,
+  scale.data = FALSE,
+  misc = FALSE
+)
+
+SaveH5Seurat(new, filename = "srt.h5seurat", overwrite = TRUE)
+Convert("srt.h5seurat", "14_16_raw_annotated.h5ad", assay="RNA", overwrite = TRUE)
+p1 <- DimPlot(new, reduction = "umap", group.by = "refined_annotation")
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
